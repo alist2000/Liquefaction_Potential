@@ -1,5 +1,6 @@
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QFormLayout, QLineEdit,
                                QPushButton, QTableWidget, QTableWidgetItem, QHeaderView)
+from PySide6.QtCore import Qt
 from Liquefaction_Potential.models.soil_profile import SoilProfile, SoilLayer
 
 
@@ -25,27 +26,16 @@ class SoilLayersTab(QWidget):
         self.add_layer_button.clicked.connect(self.add_soil_layer)
         form_layout.addRow(self.add_layer_button)
 
-        self.groundwater_level_input = QLineEdit()
-        self.max_acceleration_input = QLineEdit()
-
-        form_layout.addRow("Groundwater Level (m):", self.groundwater_level_input)
-        form_layout.addRow("Max Acceleration (g):", self.max_acceleration_input)
-
-        self.set_parameters_button = QPushButton("Set Parameters")
-        self.set_parameters_button.clicked.connect(self.set_parameters)
-        form_layout.addRow(self.set_parameters_button)
-
         layout.addLayout(form_layout)
 
         self.soil_table = QTableWidget()
         self.soil_table.setColumnCount(3)
         self.soil_table.setHorizontalHeaderLabels(["Layer Name", "Gamma (kN/m³)", "Thickness (m)"])
         self.soil_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.soil_table.itemChanged.connect(self.update_soil_layer)
         layout.addWidget(self.soil_table)
 
         self.setLayout(layout)
-
-        self.soil_profile.layers_changed.connect(self.update_soil_table)
 
     def add_soil_layer(self):
         try:
@@ -56,22 +46,11 @@ class SoilLayersTab(QWidget):
             layer = SoilLayer(layer_name, gamma, thickness)
             self.soil_profile.add_layer(layer)
 
+            self.update_soil_table()
+
             self.layer_name_input.clear()
             self.gamma_input.clear()
             self.thickness_input.clear()
-        except ValueError:
-            # Handle input errors
-            pass
-
-    def set_parameters(self):
-        try:
-            groundwater_level = float(self.groundwater_level_input.text())
-            max_acceleration = float(self.max_acceleration_input.text())
-
-            self.soil_profile.set_parameters(groundwater_level, max_acceleration)
-
-            self.groundwater_level_input.clear()
-            self.max_acceleration_input.clear()
         except ValueError:
             # Handle input errors
             pass
@@ -82,3 +61,23 @@ class SoilLayersTab(QWidget):
             self.soil_table.setItem(i, 0, QTableWidgetItem(layer.name))
             self.soil_table.setItem(i, 1, QTableWidgetItem(str(layer.gamma)))
             self.soil_table.setItem(i, 2, QTableWidgetItem(str(layer.thickness)))
+
+    def update_soil_layer(self, item):
+        row = item.row()
+        column = item.column()
+        new_value = item.text()
+
+        if column == 0:  # Layer Name
+            self.soil_profile.layers[row].name = new_value
+        elif column == 1:  # Gamma
+            try:
+                self.soil_profile.layers[row].gamma = float(new_value)
+            except ValueError:
+                # Handle invalid input
+                self.update_soil_table()
+        elif column == 2:  # Thickness
+            try:
+                self.soil_profile.layers[row].thickness = float(new_value)
+            except ValueError:
+                # Handle invalid input
+                self.update_soil_table()

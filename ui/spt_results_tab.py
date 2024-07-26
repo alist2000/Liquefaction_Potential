@@ -1,5 +1,6 @@
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QFormLayout, QLineEdit,
                                QPushButton, QTableWidget, QTableWidgetItem, QHeaderView, QLabel)
+from PySide6.QtCore import Qt
 from Liquefaction_Potential.models.soil_profile import SoilProfile
 from Liquefaction_Potential.models.spt_data import SPTData, SPTResult
 
@@ -42,7 +43,13 @@ class SPTResultsTab(QWidget):
         self.spt_table.setColumnCount(6)
         self.spt_table.setHorizontalHeaderLabels(["Depth (m)", "SPT N-Value", "Hammer Energy (%)", "Cb", "Cs", "Cr"])
         self.spt_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.spt_table.itemChanged.connect(self.update_spt_result)
         layout.addWidget(self.spt_table)
+
+        self.groundwater_level_input = QLineEdit()
+        self.max_acceleration_input = QLineEdit()
+        form_layout.addRow("Groundwater Level (m):", self.groundwater_level_input)
+        form_layout.addRow("Max Acceleration (g):", self.max_acceleration_input)
 
         self.calculate_button = QPushButton("Calculate Stresses and CSR")
         self.calculate_button.clicked.connect(self.calculate_stresses_and_csr)
@@ -52,8 +59,6 @@ class SPTResultsTab(QWidget):
         layout.addWidget(self.results_label)
 
         self.setLayout(layout)
-
-        self.spt_data.results_changed.connect(self.update_spt_table)
 
     def add_spt_result(self):
         try:
@@ -66,6 +71,8 @@ class SPTResultsTab(QWidget):
 
             result = SPTResult(depth, n_value, hammer_energy, cb, cs, cr)
             self.spt_data.add_result(result)
+
+            self.update_spt_table()
 
             self.spt_depth_input.clear()
             self.spt_n_value_input.clear()
@@ -87,10 +94,44 @@ class SPTResultsTab(QWidget):
             self.spt_table.setItem(i, 4, QTableWidgetItem(str(result.cs)))
             self.spt_table.setItem(i, 5, QTableWidgetItem(str(result.cr)))
 
+    def update_spt_result(self, item):
+        row = item.row()
+        column = item.column()
+        new_value = item.text()
+
+        try:
+            if column == 0:
+                self.spt_data.results[row].depth = float(new_value)
+            elif column == 1:
+                self.spt_data.results[row].n_value = int(new_value)
+            elif column == 2:
+                self.spt_data.results[row].hammer_energy = float(new_value)
+            elif column == 3:
+                self.spt_data.results[row].cb = float(new_value)
+            elif column == 4:
+                self.spt_data.results[row].cs = float(new_value)
+            elif column == 5:
+                self.spt_data.results[row].cr = float(new_value)
+        except ValueError:
+            # If the input is invalid, revert to the original value
+            self.update_spt_table()
+
     def calculate_stresses_and_csr(self):
-        if not self.soil_profile.groundwater_level or not self.soil_profile.max_acceleration:
-            self.results_label.setText("Please set the groundwater level and max acceleration.")
+        if self.groundwater_level_input.text():
+            try:
+                groundwater_level = float(self.groundwater_level_input.text())
+            except ValueError:
+                self.results_label.setText("Please enter valid ground water level.")
+                return
+        else:
+            groundwater_level = float('inf')
+        try:
+            max_acceleration = float(self.max_acceleration_input.text())
+        except ValueError:
+            self.results_label.setText("Please enter valid max acceleration.")
             return
+
+        self.soil_profile.set_parameters(groundwater_level, max_acceleration)
 
         total_stress = []
         effective_stress = []
@@ -113,7 +154,7 @@ class SPTResultsTab(QWidget):
             effective_stress.append(effective_stress_depth)
             rd = SPTData.calculate_rd(depth)
 
-            csr = 0.65 * self.soil_profile.max_acceleration * (total_stress_depth / effective_stress_depth) * rd
+            csr = 0.65 * max_acceleration * (total_stress_depth / effective_stress_depth) * rd
             csr_values.append(csr)
             n_edited_values.append(n_edited)
 
