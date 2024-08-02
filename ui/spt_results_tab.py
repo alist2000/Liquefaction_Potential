@@ -46,11 +46,6 @@ class SPTResultsTab(QWidget):
         self.spt_table.itemChanged.connect(self.update_spt_result)
         layout.addWidget(self.spt_table)
 
-        self.groundwater_level_input = QLineEdit()
-        self.max_acceleration_input = QLineEdit()
-        form_layout.addRow("Groundwater Level (m):", self.groundwater_level_input)
-        form_layout.addRow("Max Acceleration (g):", self.max_acceleration_input)
-
         self.calculate_button = QPushButton("Calculate Stresses and CSR")
         self.calculate_button.clicked.connect(self.calculate_stresses_and_csr)
         layout.addWidget(self.calculate_button)
@@ -117,21 +112,11 @@ class SPTResultsTab(QWidget):
             self.update_spt_table()
 
     def calculate_stresses_and_csr(self):
-        if self.groundwater_level_input.text():
-            try:
-                groundwater_level = float(self.groundwater_level_input.text())
-            except ValueError:
-                self.results_label.setText("Please enter valid ground water level.")
-                return
-        else:
-            groundwater_level = float('inf')
-        try:
-            max_acceleration = float(self.max_acceleration_input.text())
-        except ValueError:
+        if not self.soil_profile.max_acceleration:
             self.results_label.setText("Please enter valid max acceleration.")
             return
 
-        self.soil_profile.set_parameters(groundwater_level, max_acceleration)
+        max_acceleration = self.soil_profile.max_acceleration
 
         total_stress = []
         effective_stress = []

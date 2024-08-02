@@ -1,7 +1,6 @@
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QFormLayout, QLineEdit,
                                QPushButton, QTableWidget, QTableWidgetItem, QHeaderView,
-                               QHBoxLayout)
-from PySide6.QtCore import Qt
+                               QHBoxLayout, QDoubleSpinBox)
 from Liquefaction_Potential.models.soil_profile import SoilProfile, SoilLayer
 
 
@@ -43,6 +42,14 @@ class SoilLayersTab(QWidget):
 
         form_layout.addRow(button_layout)
 
+        self.groundwater_level_input = QDoubleSpinBox()
+        self.max_acceleration_input = QDoubleSpinBox()
+        self.groundwater_level_input.setDecimals(1)
+        self.max_acceleration_input.setDecimals(3)
+        self.max_acceleration_input.setRange(0, 10)
+        form_layout.addRow("Groundwater Level (m):", self.groundwater_level_input)
+        form_layout.addRow("Max Acceleration (g):", self.max_acceleration_input)
+
         layout.addLayout(form_layout)
 
         self.soil_table = QTableWidget()
@@ -51,6 +58,8 @@ class SoilLayersTab(QWidget):
                                                    "Fine Content (%)", "LL", "PI", "Actions"])
         self.soil_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.soil_table.itemChanged.connect(self.update_soil_layer)
+        self.groundwater_level_input.valueChanged.connect(self.ground_water_or_acceleration)
+        self.max_acceleration_input.valueChanged.connect(self.ground_water_or_acceleration)
         layout.addWidget(self.soil_table)
 
         self.setLayout(layout)
@@ -127,3 +136,8 @@ class SoilLayersTab(QWidget):
             row = selected_rows[0].row()
             self.soil_profile.delete_layer(row)
             self.update_soil_table()
+
+    def ground_water_or_acceleration(self):
+        ground_water = self.groundwater_level_input.value()
+        max_acceleration = self.max_acceleration_input.value()
+        self.soil_profile.set_parameters(ground_water, max_acceleration)
