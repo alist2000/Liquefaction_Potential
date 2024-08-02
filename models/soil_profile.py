@@ -8,6 +8,9 @@ class SoilLayer:
     name: str
     gamma: float
     thickness: float
+    fine_content: float
+    ll: float = None  # Liquid Limit (optional)
+    pi: float = None  # Plasticity Index (optional)
 
 
 class SoilProfile(QObject):
@@ -23,6 +26,18 @@ class SoilProfile(QObject):
     def add_layer(self, layer: SoilLayer):
         self.layers.append(layer)
         self.layers_changed.emit()
+
+    def delete_layer(self, index: int):
+        if 0 <= index < len(self.layers):
+            del self.layers[index]
+            self.layers_changed.emit()
+
+    def copy_layer(self, index: int):
+        if 0 <= index < len(self.layers):
+            new_layer = SoilLayer(**self.layers[index].__dict__)
+            new_layer.name += " (copy)"
+            self.layers.insert(index + 1, new_layer)
+            self.layers_changed.emit()
 
     def set_parameters(self, groundwater_level: float, max_acceleration: float):
         self.groundwater_level = groundwater_level
