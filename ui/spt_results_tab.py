@@ -3,6 +3,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QFormLayout,
                                QRadioButton, QHBoxLayout)
 from Liquefaction_Potential.models.soil_profile import SoilProfile
 from Liquefaction_Potential.models.spt_data import SPTData, SPTResult
+from Liquefaction_Potential.calculation.calculation_factory import CalculationFactory
 
 
 class SPTResultsTab(QWidget):
@@ -188,32 +189,17 @@ class SPTResultsTab(QWidget):
             self.results_label.setText("Please enter valid MSF or Earthquake Magnitude.")
             return
 
-        max_acceleration = self.soil_profile.max_acceleration
+        nceer_calculation = CalculationFactory.get_calculation("NCEER")
+        japanese_calculation = CalculationFactory.get_calculation("Japanese")
 
-        total_stress = []
-        effective_stress = []
-        csr_values = []
-        n_edited_values = []
+        nceer_parameters = nceer_calculation.calculate_fl(self.soil_profile, self.spt_data)
 
-        for result in self.spt_data.results:
-            depth = result.depth
-            n_value = result.n_value
-            hammer_energy = result.hammer_energy / 60
-            cb, cs, cr = result.cb, result.cs, result.cr
-
-            total_stress_depth = self.soil_profile.calculate_total_stress(depth)
-            effective_stress_depth = self.soil_profile.calculate_effective_stress(depth, total_stress_depth)
-
-            cn = min((100 / effective_stress_depth) ** 0.5, 1.7)
-            n_edited = n_value * cb * cn * cs * cr * hammer_energy
-
-            total_stress.append(total_stress_depth)
-            effective_stress.append(effective_stress_depth)
-            rd = SPTData.calculate_rd(depth)
-
-            csr = 0.65 * max_acceleration * (total_stress_depth / effective_stress_depth) * rd
-            csr_values.append(csr)
-            n_edited_values.append(n_edited)
-
+        japanese_parameters = japanese_calculation.calculate_fl(self.soil_profile, self.spt_data)
         self.results_label.setText(
-            f"Total Stress: {total_stress}\nEffective Stress: {effective_stress}\nCSR: {csr_values}\nN1 60: {n_edited_values}")
+            f"Total Stress: {nceer_parameters[0]}\nEffective Stress: {nceer_parameters[1]}\nCSR: {nceer_parameters[2]}\nN1 60: {nceer_parameters[3]}\nN1 60 cs : {nceer_parameters[4]}")
+
+        self.display_results(nceer_parameters, japanese_parameters)
+
+    def display_results(self, nceer_params, japanese_params):
+        # Implement result display logic
+        pass
