@@ -1,6 +1,6 @@
-from PySide6.QtWidgets import (QWidget, QVBoxLayout, QFormLayout, QLineEdit,
-                               QPushButton, QTableWidget, QTableWidgetItem, QHeaderView, QLabel)
-from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (QWidget, QVBoxLayout, QFormLayout,
+                               QPushButton, QTableWidget, QTableWidgetItem, QHeaderView, QLabel, QDoubleSpinBox,
+                               QRadioButton, QHBoxLayout)
 from Liquefaction_Potential.models.soil_profile import SoilProfile
 from Liquefaction_Potential.models.spt_data import SPTData, SPTResult
 
@@ -16,15 +16,32 @@ class SPTResultsTab(QWidget):
         layout = QVBoxLayout()
         form_layout = QFormLayout()
 
-        self.spt_depth_input = QLineEdit()
-        self.spt_n_value_input = QLineEdit()
-        self.hammer_energy_input = QLineEdit()
-        self.cb_input = QLineEdit()
-        self.cb_input.setText("1")
-        self.cs_input = QLineEdit()
-        self.cs_input.setText("1")
-        self.cr_input = QLineEdit()
-        self.cr_input.setText("1")
+        self.spt_depth_input = QDoubleSpinBox()
+        self.spt_n_value_input = QDoubleSpinBox()
+        self.hammer_energy_input = QDoubleSpinBox()
+        self.cb_input = QDoubleSpinBox()
+        self.cb_input.setValue(1)
+        self.cs_input = QDoubleSpinBox()
+        self.cs_input.setValue(1)
+        self.cr_input = QDoubleSpinBox()
+        self.cr_input.setValue(1)
+        self.kalpha = QDoubleSpinBox()
+        self.kalpha.setValue(1)
+
+        self.ksigma_ratio = QRadioButton()
+        self.ksigma_ratio.setChecked(True)
+        self.ksigma = QDoubleSpinBox()
+        self.ksigma.setValue(1)
+        self.Dr_ratio = QRadioButton()
+        self.Dr = QDoubleSpinBox()
+        self.Dr.setEnabled(False)
+        self.Dr_ratio.toggled.connect(self.k_sigma_toggled)
+        self.ksigma_ratio.toggled.connect(self.k_sigma_toggled)
+
+        self.hLayout = QHBoxLayout()
+        for i in [self.ksigma_ratio, QLabel("Kσ: "), self.ksigma, self.Dr_ratio, QLabel("Dr (Relative Density %): "),
+                  self.Dr]:
+            self.hLayout.addWidget(i)
 
         form_layout.addRow("Depth (m):", self.spt_depth_input)
         form_layout.addRow("SPT N-Value:", self.spt_n_value_input)
@@ -32,6 +49,8 @@ class SPTResultsTab(QWidget):
         form_layout.addRow("Cb:", self.cb_input)
         form_layout.addRow("Cs:", self.cs_input)
         form_layout.addRow("Cr:", self.cr_input)
+        form_layout.addRow("Kα:", self.kalpha)
+        form_layout.addRow(self.hLayout)
 
         self.add_spt_result_button = QPushButton("Add SPT Result")
         self.add_spt_result_button.clicked.connect(self.add_spt_result)
@@ -40,8 +59,17 @@ class SPTResultsTab(QWidget):
         layout.addLayout(form_layout)
 
         self.spt_table = QTableWidget()
-        self.spt_table.setColumnCount(6)
-        self.spt_table.setHorizontalHeaderLabels(["Depth (m)", "SPT N-Value", "Hammer Energy (%)", "Cb", "Cs", "Cr"])
+        self.spt_table.setColumnCount(8)
+        self.spt_table.setHorizontalHeaderLabels([
+            "Depth (m)",
+            "SPT N-Value",
+            "Hammer Energy (%)",
+            "Cb",
+            "Cs",
+            "Cr",
+            "Kα",
+            "Kσ"
+        ])
         self.spt_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.spt_table.itemChanged.connect(self.update_spt_result)
         layout.addWidget(self.spt_table)
@@ -57,14 +85,19 @@ class SPTResultsTab(QWidget):
 
     def add_spt_result(self):
         try:
-            depth = float(self.spt_depth_input.text())
-            n_value = int(self.spt_n_value_input.text())
-            hammer_energy = float(self.hammer_energy_input.text())
-            cb = float(self.cb_input.text())
-            cs = float(self.cs_input.text())
-            cr = float(self.cr_input.text())
+            depth = float(self.spt_depth_input.value())
+            n_value = int(self.spt_n_value_input.value())
+            hammer_energy = float(self.hammer_energy_input.value())
+            cb = float(self.cb_input.value())
+            cs = float(self.cs_input.value())
+            cr = float(self.cr_input.value())
+            k_alpha = float(self.ksigma.value())
+            if self.ksigma_ratio.isChecked():
+                k_sigma_or_dr = float(self.ksigma.value())
+            else:
+                k_sigma_or_dr = float(self.Dr.value())
 
-            result = SPTResult(depth, n_value, hammer_energy, cb, cs, cr)
+            result = SPTResult(depth, n_value, hammer_energy, cb, cs, cr, k_alpha, k_sigma_or_dr)
             self.spt_data.add_result(result)
 
             self.update_spt_table()
@@ -72,9 +105,9 @@ class SPTResultsTab(QWidget):
             self.spt_depth_input.clear()
             self.spt_n_value_input.clear()
             self.hammer_energy_input.clear()
-            self.cb_input.setText("1")
-            self.cs_input.setText("1")
-            self.cr_input.setText("1")
+            self.cb_input.setValue(1)
+            self.cs_input.setValue(1)
+            self.cr_input.setValue(1)
         except ValueError:
             # Handle input errors
             pass
@@ -88,6 +121,8 @@ class SPTResultsTab(QWidget):
             self.spt_table.setItem(i, 3, QTableWidgetItem(str(result.cb)))
             self.spt_table.setItem(i, 4, QTableWidgetItem(str(result.cs)))
             self.spt_table.setItem(i, 5, QTableWidgetItem(str(result.cr)))
+            self.spt_table.setItem(i, 6, QTableWidgetItem(str(result.k_alpha)))
+            self.spt_table.setItem(i, 7, QTableWidgetItem(str(result.k_sigma_or_dr)))
 
     def update_spt_result(self, item):
         row = item.row()
@@ -107,9 +142,43 @@ class SPTResultsTab(QWidget):
                 self.spt_data.results[row].cs = float(new_value)
             elif column == 5:
                 self.spt_data.results[row].cr = float(new_value)
+            elif column == 6:
+                self.spt_data.results[row].k_alpha = float(new_value)
+            elif column == 7:
+                self.spt_data.results[row].k_sigma_or_dr = float(new_value)
         except ValueError:
             # If the input is invalid, revert to the original value
             self.update_spt_table()
+
+    def k_sigma_toggled(self):
+        if self.ksigma_ratio.isChecked():
+            self.ksigma.setEnabled(True)
+            self.Dr_ratio.setChecked(False)
+            self.Dr.setEnabled(False)
+            self.spt_table.setHorizontalHeaderLabels([
+                "Depth (m)",
+                "SPT N-Value",
+                "Hammer Energy (%)",
+                "Cb",
+                "Cs",
+                "Cr",
+                "Kα",
+                "Kσ"
+            ])
+        else:
+            self.Dr.setEnabled(True)
+            self.ksigma_ratio.setChecked(False)
+            self.ksigma.setEnabled(False)
+            self.spt_table.setHorizontalHeaderLabels([
+                "Depth (m)",
+                "SPT N-Value",
+                "Hammer Energy (%)",
+                "Cb",
+                "Cs",
+                "Cr",
+                "Kα",
+                "Dr"
+            ])
 
     def calculate_stresses_and_csr(self):
         if not self.soil_profile.max_acceleration:

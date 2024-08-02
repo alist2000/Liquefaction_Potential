@@ -11,6 +11,8 @@ class SPTResult:
     cb: float
     cs: float
     cr: float
+    k_alpha: float
+    k_sigma_or_dr: float
 
 
 class SPTData(QObject):
