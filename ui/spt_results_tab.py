@@ -115,6 +115,9 @@ class SPTResultsTab(QWidget):
         if not self.soil_profile.max_acceleration:
             self.results_label.setText("Please enter valid max acceleration.")
             return
+        if not self.soil_profile.msf:
+            self.results_label.setText("Please enter valid MSF or Earthquake Magnitude.")
+            return
 
         max_acceleration = self.soil_profile.max_acceleration
 

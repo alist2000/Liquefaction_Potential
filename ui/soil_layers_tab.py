@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QFormLayout, QLineEdit,
                                QPushButton, QTableWidget, QTableWidgetItem, QHeaderView,
-                               QHBoxLayout, QDoubleSpinBox)
+                               QHBoxLayout, QDoubleSpinBox, QRadioButton, QLabel)
 from Liquefaction_Potential.models.soil_profile import SoilProfile, SoilLayer
 
 
@@ -50,12 +50,32 @@ class SoilLayersTab(QWidget):
         form_layout.addRow("Groundwater Level (m):", self.groundwater_level_input)
         form_layout.addRow("Max Acceleration (g):", self.max_acceleration_input)
 
+        self.magnitude_input = QDoubleSpinBox()
+        self.magnitude_input.setDecimals(1)
+        self.magnitude_input.setRange(0, 10)
+        self.magnitude_ratio = QRadioButton()
+        self.magnitude_ratio.setChecked(True)
+        self.MSF_input = QDoubleSpinBox()
+        self.MSF_input.setEnabled(False)
+        self.MSF_input.setDecimals(3)
+        self.MSF_ratio = QRadioButton()
+        self.hlayout = QHBoxLayout()
+        self.MSF_ratio.toggled.connect(self.update_msf_ratio)
+        self.magnitude_ratio.toggled.connect(self.update_msf_ratio)
+        self.MSF_input.valueChanged.connect(self.update_msf)
+        self.magnitude_input.valueChanged.connect(self.update_msf)
+        for i in [self.magnitude_ratio, QLabel("Earthquake Magnitude:"), self.magnitude_input, self.MSF_ratio,
+                  QLabel("MSF:"),
+                  self.MSF_input]:
+            self.hlayout.addWidget(i)
+        form_layout.addRow(self.hlayout)
+
         layout.addLayout(form_layout)
 
         self.soil_table = QTableWidget()
-        self.soil_table.setColumnCount(7)
+        self.soil_table.setColumnCount(6)
         self.soil_table.setHorizontalHeaderLabels(["Layer Name", "Gamma (kN/m³)", "Thickness (m)",
-                                                   "Fine Content (%)", "LL", "PI", "Actions"])
+                                                   "Fine Content (%)", "LL", "PI"])
         self.soil_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.soil_table.itemChanged.connect(self.update_soil_layer)
         self.groundwater_level_input.valueChanged.connect(self.ground_water_or_acceleration)
@@ -141,3 +161,22 @@ class SoilLayersTab(QWidget):
         ground_water = self.groundwater_level_input.value()
         max_acceleration = self.max_acceleration_input.value()
         self.soil_profile.set_parameters(ground_water, max_acceleration)
+
+    def update_msf_ratio(self):
+        if self.MSF_ratio.isChecked():
+            self.MSF_input.setEnabled(True)
+            self.magnitude_input.setEnabled(False)
+            self.magnitude_ratio.setChecked(False)
+        else:
+            self.magnitude_input.setEnabled(True)
+            self.MSF_input.setEnabled(False)
+            self.MSF_ratio.setChecked(False)
+
+    def update_msf(self):
+        if self.MSF_ratio.isChecked():
+            msf = self.MSF_input.value()
+        else:
+            magnitude = self.magnitude_input.value()
+            msf = (7.5 / magnitude) ** 3.3
+
+        self.soil_profile.set_msf(msf)

@@ -22,6 +22,7 @@ class SoilProfile(QObject):
         self.layers: List[SoilLayer] = []
         self.groundwater_level: float = None
         self.max_acceleration: float = None
+        self.msf: float = None
 
     def add_layer(self, layer: SoilLayer):
         self.layers.append(layer)
@@ -42,6 +43,10 @@ class SoilProfile(QObject):
     def set_parameters(self, groundwater_level: float, max_acceleration: float):
         self.groundwater_level = groundwater_level
         self.max_acceleration = max_acceleration
+        self.parameters_changed.emit()
+
+    def set_msf(self, msf: float):
+        self.msf = msf
         self.parameters_changed.emit()
 
     def calculate_total_stress(self, depth: float) -> float:
