@@ -196,7 +196,8 @@ class SPTResultsTab(QWidget):
 
         japanese_parameters = japanese_calculation.calculate_fl(self.soil_profile, self.spt_data)
         self.results_label.setText(
-            f"Total Stress: {nceer_parameters[0]}\nEffective Stress: {nceer_parameters[1]}\nCSR: {nceer_parameters[2]}\nN1 60: {nceer_parameters[3]}\nN1 60 cs : {nceer_parameters[4]}")
+            f"Total Stress: {nceer_parameters[0]}\nEffective Stress: {nceer_parameters[1]}\nCSR: {nceer_parameters[2]}\nN1 60: {nceer_parameters[3]}"
+            f"\nN1 60 cs : {nceer_parameters[4]} \n CRR 7.5: {nceer_parameters[5]}")
 
         self.display_results(nceer_parameters, japanese_parameters)
 
