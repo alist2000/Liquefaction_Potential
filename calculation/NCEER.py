@@ -21,6 +21,7 @@ class NCEERCalculation(CalculationStrategy):
         csr_values = []
         n_edited_values = []
         n_edited_values_cs = []
+        CRR_7_5 = []
 
         fine_content_index = 0
         fine_content_layer = fine_content[0]["fine_content"]
@@ -48,7 +49,7 @@ class NCEERCalculation(CalculationStrategy):
             total_stress_depth = self.soil_profile.calculate_total_stress(depth)
             effective_stress_depth = self.soil_profile.calculate_effective_stress(depth, total_stress_depth)
 
-            cn = min((100 / effective_stress_depth) ** 0.5, 1.7)
+            cn = min((100 / min(effective_stress_depth, 200)) ** 0.5, 1.7)
             n_edited = n_value * cb * cn * cs * cr * hammer_energy
 
             n_edited_cs = n_edited * beta + alpha
@@ -61,7 +62,9 @@ class NCEERCalculation(CalculationStrategy):
             csr_values.append(csr)
             n_edited_values.append(n_edited)
             n_edited_values_cs.append(n_edited_cs)
-        return total_stress, effective_stress, csr_values, n_edited_values, n_edited_values_cs
+            CRR = (1 / (34 - n_edited_cs)) + (n_edited_cs / 135) + (50 / ((10 * n_edited_cs + 45) ** 2)) - (1 / 200)
+            CRR_7_5.append(CRR)
+        return total_stress, effective_stress, csr_values, n_edited_values, n_edited_values_cs, CRR_7_5
 
     def calculate_alpha_beta(self, fine_content):
         if fine_content <= 5:
