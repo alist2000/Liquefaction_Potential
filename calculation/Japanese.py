@@ -85,7 +85,7 @@ class JapaneseCalculation(CalculationStrategy):
                 # Create a linear interpolation function
                 linear_interp = interpolate.interp1d(dr_values, f_values, fill_value="extrapolate")
                 f = linear_interp(relative_density)
-                k_sigma = float((effective_stress_depth / 100) ** (f - 1))
+                k_sigma = float((effective_stress_depth / 1) ** (f - 1))
             msf = soil_profile.msf
             CRR_final = msf * k_alpha * k_sigma * CRR
             fl = CRR_final / csr
