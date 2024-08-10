@@ -202,7 +202,10 @@ class SPTResultsTab(QWidget):
         self.results_label.setText(
             f"Total Stress: {nceer_parameters[0]}\nEffective Stress: {nceer_parameters[1]}\nCSR: {nceer_parameters[2]}\nN1 60: {nceer_parameters[3]}"
             f"\nN1 60 cs : {nceer_parameters[4]} \nCRR 7.5: {nceer_parameters[5]} \nCRR : {nceer_parameters[6]}"
-            f"\nFl : {nceer_parameters[7]}")
+            f"\nFl : {nceer_parameters[7]} \n ---------------------- "
+            f"\nTotal Stress: {japanese_parameters[0]}\nEffective Stress: {japanese_parameters[1]}\nCSR: {japanese_parameters[2]}\nN1 60: {japanese_parameters[3]}"
+            f"\nN1 60 cs : {japanese_parameters[4]} \nCRR 7.5: {japanese_parameters[5]} \nCRR : {japanese_parameters[6]}"
+            f"\nFl : {japanese_parameters[7]}")
 
         self.display_results(nceer_parameters, japanese_parameters)
 

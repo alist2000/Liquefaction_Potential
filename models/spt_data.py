@@ -33,3 +33,8 @@ class SPTData(QObject):
         else:
             rd = 1.174 - 0.0267 * depth
         return rd
+
+    @staticmethod
+    def calculate_rd_japanese(depth: float) -> float:
+        rd = 1 - 0.015 * depth
+        return rd
