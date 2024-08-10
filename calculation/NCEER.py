@@ -1,10 +1,12 @@
 from Liquefaction_Potential.calculation.calculation_strategy import CalculationStrategy
 from Liquefaction_Potential.models.spt_data import SPTData
 from math import exp
+import numpy as np
+from scipy import interpolate
 
 
 class NCEERCalculation(CalculationStrategy):
-    def calculate_fl(self, soil_profile, spt_data):
+    def calculate_fl(self, soil_profile, spt_data, k_sigma_status):
         self.set_value(soil_profile, spt_data)
         max_acceleration = self.soil_profile.max_acceleration
         fine_content = []
@@ -22,6 +24,8 @@ class NCEERCalculation(CalculationStrategy):
         n_edited_values = []
         n_edited_values_cs = []
         CRR_7_5 = []
+        CRR_main = []
+        Fl = []
 
         fine_content_index = 0
         fine_content_layer = fine_content[0]["fine_content"]
@@ -64,7 +68,26 @@ class NCEERCalculation(CalculationStrategy):
             n_edited_values_cs.append(n_edited_cs)
             CRR = (1 / (34 - n_edited_cs)) + (n_edited_cs / 135) + (50 / ((10 * n_edited_cs + 45) ** 2)) - (1 / 200)
             CRR_7_5.append(CRR)
-        return total_stress, effective_stress, csr_values, n_edited_values, n_edited_values_cs, CRR_7_5
+            k_alpha = result.k_alpha
+            if k_sigma_status:
+                k_sigma = result.k_sigma_or_dr
+            else:
+                relative_density = result.k_sigma_or_dr
+                # Given data
+                dr_values = np.array([40, 60, 80])
+                f_values = np.array([0.8, 0.7, 0.6])
+
+                # Create a linear interpolation function
+                linear_interp = interpolate.interp1d(dr_values, f_values, fill_value="extrapolate")
+                f = linear_interp(relative_density)
+                k_sigma = float((effective_stress_depth / 100) ** (f - 1))
+            msf = soil_profile.msf
+            CRR_final = msf * k_alpha * k_sigma * CRR
+            fl = CRR_final / csr
+            CRR_main.append(CRR_final)
+            Fl.append(fl)
+
+        return total_stress, effective_stress, csr_values, n_edited_values, n_edited_values_cs, CRR_7_5, CRR_main, Fl
 
     def calculate_alpha_beta(self, fine_content):
         if fine_content <= 5:

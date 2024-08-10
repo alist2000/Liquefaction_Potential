@@ -188,16 +188,21 @@ class SPTResultsTab(QWidget):
         if not self.soil_profile.msf:
             self.results_label.setText("Please enter valid MSF or Earthquake Magnitude.")
             return
+        if self.ksigma_ratio.isChecked():
+            k_sigma_status = True
+        else:
+            k_sigma_status = False
 
         nceer_calculation = CalculationFactory.get_calculation("NCEER")
         japanese_calculation = CalculationFactory.get_calculation("Japanese")
 
-        nceer_parameters = nceer_calculation.calculate_fl(self.soil_profile, self.spt_data)
+        nceer_parameters = nceer_calculation.calculate_fl(self.soil_profile, self.spt_data, k_sigma_status)
 
-        japanese_parameters = japanese_calculation.calculate_fl(self.soil_profile, self.spt_data)
+        japanese_parameters = japanese_calculation.calculate_fl(self.soil_profile, self.spt_data, k_sigma_status)
         self.results_label.setText(
             f"Total Stress: {nceer_parameters[0]}\nEffective Stress: {nceer_parameters[1]}\nCSR: {nceer_parameters[2]}\nN1 60: {nceer_parameters[3]}"
-            f"\nN1 60 cs : {nceer_parameters[4]} \n CRR 7.5: {nceer_parameters[5]}")
+            f"\nN1 60 cs : {nceer_parameters[4]} \nCRR 7.5: {nceer_parameters[5]} \nCRR : {nceer_parameters[6]}"
+            f"\nFl : {nceer_parameters[7]}")
 
         self.display_results(nceer_parameters, japanese_parameters)
 
