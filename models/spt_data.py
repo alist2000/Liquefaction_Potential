@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 from PySide6.QtCore import QObject, Signal
-
+import copy
 
 @dataclass
 class SPTResult:
@@ -25,6 +25,18 @@ class SPTData(QObject):
     def add_result(self, result: SPTResult):
         self.results.append(result)
         self.results_changed.emit()
+
+    def copy_result(self, index: int):
+        if 0 <= index < len(self.results):
+            new_result = copy.deepcopy(self.results[index])
+            new_result.depth += 1  # Slightly modify the depth to differentiate
+            self.results.insert(index + 1, new_result)
+            self.results_changed.emit()
+
+    def delete_result(self, index: int):
+        if 0 <= index < len(self.results):
+            del self.results[index]
+            self.results_changed.emit()
 
     @staticmethod
     def calculate_rd(depth: float) -> float:

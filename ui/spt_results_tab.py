@@ -53,9 +53,20 @@ class SPTResultsTab(QWidget):
         form_layout.addRow("Kα:", self.kalpha)
         form_layout.addRow(self.hLayout)
 
+        button_layout = QHBoxLayout()
+
         self.add_spt_result_button = QPushButton("Add SPT Result")
         self.add_spt_result_button.clicked.connect(self.add_spt_result)
-        form_layout.addRow(self.add_spt_result_button)
+        self.copy_spt_result_button = QPushButton("Copy Selected Result")
+        self.copy_spt_result_button.clicked.connect(self.copy_selected_result)
+        self.delete_spt_result_button = QPushButton("Delete Selected Result")
+        self.delete_spt_result_button.clicked.connect(self.delete_selected_result)
+
+        button_layout.addWidget(self.add_spt_result_button)
+        button_layout.addWidget(self.copy_spt_result_button)
+        button_layout.addWidget(self.delete_spt_result_button)
+
+        form_layout.addRow(button_layout)
 
         layout.addLayout(form_layout)
 
@@ -112,6 +123,20 @@ class SPTResultsTab(QWidget):
         except ValueError:
             # Handle input errors
             pass
+
+    def copy_selected_result(self):
+        selected_items = self.spt_table.selectedItems()
+        if selected_items:
+            row = selected_items[0].row()
+            self.spt_data.copy_result(row)
+            self.update_spt_table()
+
+    def delete_selected_result(self):
+        selected_items = self.spt_table.selectedItems()
+        if selected_items:
+            row = selected_items[0].row()
+            self.spt_data.delete_result(row)
+            self.update_spt_table()
 
     def update_spt_table(self):
         self.spt_table.setRowCount(len(self.spt_data.results))
