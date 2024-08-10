@@ -49,8 +49,10 @@ class MainWindow(QMainWindow):
                 "soil_layers": [layer.__dict__ for layer in self.soil_profile.layers],
                 "groundwater_level": self.soil_profile.groundwater_level,
                 "max_acceleration": self.soil_profile.max_acceleration,
-                "msf": self.soil_profile.msf,
-                "spt_results": [result.__dict__ for result in self.spt_data.results]
+                "spt_results": [result.__dict__ for result in self.spt_data.results],
+                "msf_option": "msf" if self.soil_layers_tab.MSF_ratio.isChecked() else "magnitude",
+                "k_sigma_option": "k_sigma" if self.spt_results_tab.ksigma_ratio.isChecked() else "density",
+                "msf_value": self.soil_layers_tab.MSF_input.value() if self.soil_layers_tab.MSF_ratio.isChecked() else self.soil_layers_tab.magnitude_input.value()
             }
             with open(file_name, 'w') as f:
                 json.dump(data, f, indent=4)
@@ -71,7 +73,6 @@ class MainWindow(QMainWindow):
 
             # Load soil profile parameters
             self.soil_profile.set_parameters(data["groundwater_level"], data["max_acceleration"])
-            self.soil_profile.set_msf(data["msf"])
 
             # Load SPT results
             for spt_data in data["spt_results"]:
@@ -81,6 +82,25 @@ class MainWindow(QMainWindow):
             self.soil_layers_tab.update_soil_table()
             self.soil_layers_tab.groundwater_level_input.setValue(data["groundwater_level"])
             self.soil_layers_tab.max_acceleration_input.setValue(data["max_acceleration"])
+
+            # Handle MSF or magnitude option
+            if data["msf_option"] == "msf":
+                self.soil_layers_tab.MSF_ratio.setChecked(True)
+                self.soil_layers_tab.MSF_input.setValue(data["msf_value"])
+                self.soil_profile.set_msf(data["msf_value"])
+            else:
+                self.soil_layers_tab.magnitude_ratio.setChecked(True)
+                self.soil_layers_tab.magnitude_input.setValue(data["msf_value"])
+                msf = (7.5 / data["msf_value"]) ** 3.3  # Calculate MSF from magnitude
+                self.soil_profile.set_msf(msf)
+
+            # Handle K Sigma or Relative density option
+            if data["k_sigma_option"] == "k_sigma":
+                self.spt_results_tab.ksigma_ratio.setChecked(True)
+            else:
+                self.spt_results_tab.Dr_ratio.setChecked(True)
+
+            self.soil_layers_tab.update_msf_ratio()  # Make sure UI is updated based on selected option
             self.spt_results_tab.update_spt_table()
 
             # You may need to update other UI elements as well
