@@ -1,9 +1,10 @@
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QFormLayout,
                                QPushButton, QTableWidget, QTableWidgetItem, QHeaderView, QLabel, QDoubleSpinBox,
-                               QRadioButton, QHBoxLayout)
+                               QRadioButton, QHBoxLayout, QTabWidget)
 from Liquefaction_Potential.models.soil_profile import SoilProfile
 from Liquefaction_Potential.models.spt_data import SPTData, SPTResult
 from Liquefaction_Potential.calculation.calculation_factory import CalculationFactory
+from Liquefaction_Potential.ui.results_display_tab import ResultsDisplayTab
 
 
 class SPTResultsTab(QWidget):
@@ -14,35 +15,28 @@ class SPTResultsTab(QWidget):
         self.setup_ui()
 
     def setup_ui(self):
-        layout = QVBoxLayout()
-        form_layout = QFormLayout()
+        layout = QVBoxLayout(self)
 
+        self.tab_widget = QTabWidget()
+        layout.addWidget(self.tab_widget)
+
+        # SPT Input Tab
+        self.spt_input_tab = QWidget()
+        self.tab_widget.addTab(self.spt_input_tab, "SPT Input")
+
+        spt_input_layout = QVBoxLayout(self.spt_input_tab)
+
+        form_layout = QFormLayout()
+        spt_input_layout.addLayout(form_layout)
+
+        # Add your input fields here
         self.spt_depth_input = QDoubleSpinBox()
         self.spt_n_value_input = QDoubleSpinBox()
         self.hammer_energy_input = QDoubleSpinBox()
         self.cb_input = QDoubleSpinBox()
-        self.cb_input.setValue(1)
         self.cs_input = QDoubleSpinBox()
-        self.cs_input.setValue(1)
         self.cr_input = QDoubleSpinBox()
-        self.cr_input.setValue(1)
         self.kalpha = QDoubleSpinBox()
-        self.kalpha.setValue(1)
-
-        self.ksigma_ratio = QRadioButton()
-        self.ksigma_ratio.setChecked(True)
-        self.ksigma = QDoubleSpinBox()
-        self.ksigma.setValue(1)
-        self.Dr_ratio = QRadioButton()
-        self.Dr = QDoubleSpinBox()
-        self.Dr.setEnabled(False)
-        self.Dr_ratio.toggled.connect(self.k_sigma_toggled)
-        self.ksigma_ratio.toggled.connect(self.k_sigma_toggled)
-
-        self.hLayout = QHBoxLayout()
-        for i in [self.ksigma_ratio, QLabel("Kσ: "), self.ksigma, self.Dr_ratio, QLabel("Dr (Relative Density %): "),
-                  self.Dr]:
-            self.hLayout.addWidget(i)
 
         form_layout.addRow("Depth (m):", self.spt_depth_input)
         form_layout.addRow("SPT N-Value:", self.spt_n_value_input)
@@ -51,49 +45,116 @@ class SPTResultsTab(QWidget):
         form_layout.addRow("Cs:", self.cs_input)
         form_layout.addRow("Cr:", self.cr_input)
         form_layout.addRow("Kα:", self.kalpha)
-        form_layout.addRow(self.hLayout)
 
+        # K-sigma and Dr layout
+        k_sigma_layout = QHBoxLayout()
+        self.ksigma_ratio = QRadioButton("Kσ:")
+        self.ksigma = QDoubleSpinBox()
+        self.Dr_ratio = QRadioButton("Dr (%):")
+        self.Dr = QDoubleSpinBox()
+
+        k_sigma_layout.addWidget(self.ksigma_ratio)
+        k_sigma_layout.addWidget(self.ksigma)
+        k_sigma_layout.addWidget(self.Dr_ratio)
+        k_sigma_layout.addWidget(self.Dr)
+
+        form_layout.addRow(k_sigma_layout)
+        form_layout.addRow(k_sigma_layout)
+
+        # Buttons
         button_layout = QHBoxLayout()
-
         self.add_spt_result_button = QPushButton("Add SPT Result")
-        self.add_spt_result_button.clicked.connect(self.add_spt_result)
         self.copy_spt_result_button = QPushButton("Copy Selected Result")
-        self.copy_spt_result_button.clicked.connect(self.copy_selected_result)
         self.delete_spt_result_button = QPushButton("Delete Selected Result")
-        self.delete_spt_result_button.clicked.connect(self.delete_selected_result)
 
         button_layout.addWidget(self.add_spt_result_button)
         button_layout.addWidget(self.copy_spt_result_button)
         button_layout.addWidget(self.delete_spt_result_button)
 
-        form_layout.addRow(button_layout)
+        spt_input_layout.addLayout(button_layout)
 
-        layout.addLayout(form_layout)
-
+        # SPT Table
         self.spt_table = QTableWidget()
         self.spt_table.setColumnCount(8)
         self.spt_table.setHorizontalHeaderLabels([
-            "Depth (m)",
-            "SPT N-Value",
-            "Hammer Energy (%)",
-            "Cb",
-            "Cs",
-            "Cr",
-            "Kα",
-            "Kσ"
+            "Depth (m)", "SPT N-Value", "Hammer Energy (%)",
+            "Cb", "Cs", "Cr", "Kα", "Kσ/Dr"
         ])
         self.spt_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.spt_table.itemChanged.connect(self.update_spt_result)
-        layout.addWidget(self.spt_table)
+        spt_input_layout.addWidget(self.spt_table)
 
+        # Calculate button
         self.calculate_button = QPushButton("Calculate Stresses and CSR")
+        spt_input_layout.addWidget(self.calculate_button)
+
+        # Results Display Tab
+        self.results_display_tab = ResultsDisplayTab()
+        self.tab_widget.addTab(self.results_display_tab, "Results")
+
+        # Connect signals
+        self.add_spt_result_button.clicked.connect(self.add_spt_result)
+        self.copy_spt_result_button.clicked.connect(self.copy_selected_result)
+        self.delete_spt_result_button.clicked.connect(self.delete_selected_result)
         self.calculate_button.clicked.connect(self.calculate_stresses_and_csr)
-        layout.addWidget(self.calculate_button)
+        self.spt_table.itemChanged.connect(self.update_spt_result)
+        self.ksigma_ratio.toggled.connect(self.k_sigma_toggled)
+        self.Dr_ratio.toggled.connect(self.k_sigma_toggled)
 
-        self.results_label = QLabel()
-        layout.addWidget(self.results_label)
-
-        self.setLayout(layout)
+        # self.hLayout = QHBoxLayout()
+        # for i in [self.ksigma_ratio, QLabel("Kσ: "), self.ksigma, self.Dr_ratio, QLabel("Dr (Relative Density %): "),
+        #           self.Dr]:
+        #     self.hLayout.addWidget(i)
+        #
+        # form_layout.addRow("Depth (m):", self.spt_depth_input)
+        # form_layout.addRow("SPT N-Value:", self.spt_n_value_input)
+        # form_layout.addRow("Hammer Energy (%):", self.hammer_energy_input)
+        # form_layout.addRow("Cb:", self.cb_input)
+        # form_layout.addRow("Cs:", self.cs_input)
+        # form_layout.addRow("Cr:", self.cr_input)
+        # form_layout.addRow("Kα:", self.kalpha)
+        # form_layout.addRow(self.hLayout)
+        #
+        # button_layout = QHBoxLayout()
+        #
+        # self.add_spt_result_button = QPushButton("Add SPT Result")
+        # self.add_spt_result_button.clicked.connect(self.add_spt_result)
+        # self.copy_spt_result_button = QPushButton("Copy Selected Result")
+        # self.copy_spt_result_button.clicked.connect(self.copy_selected_result)
+        # self.delete_spt_result_button = QPushButton("Delete Selected Result")
+        # self.delete_spt_result_button.clicked.connect(self.delete_selected_result)
+        #
+        # button_layout.addWidget(self.add_spt_result_button)
+        # button_layout.addWidget(self.copy_spt_result_button)
+        # button_layout.addWidget(self.delete_spt_result_button)
+        #
+        # form_layout.addRow(button_layout)
+        #
+        # layout.addLayout(form_layout)
+        #
+        # self.spt_table = QTableWidget()
+        # self.spt_table.setColumnCount(8)
+        # self.spt_table.setHorizontalHeaderLabels([
+        #     "Depth (m)",
+        #     "SPT N-Value",
+        #     "Hammer Energy (%)",
+        #     "Cb",
+        #     "Cs",
+        #     "Cr",
+        #     "Kα",
+        #     "Kσ"
+        # ])
+        # self.spt_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        # self.spt_table.itemChanged.connect(self.update_spt_result)
+        # layout.addWidget(self.spt_table)
+        #
+        # self.calculate_button = QPushButton("Calculate Stresses and CSR")
+        # self.calculate_button.clicked.connect(self.calculate_stresses_and_csr)
+        # layout.addWidget(self.calculate_button)
+        #
+        # self.results_label = QLabel()
+        # layout.addWidget(self.results_label)
+        #
+        # self.setLayout(layout)
 
     def add_spt_result(self):
         try:
@@ -208,29 +269,29 @@ class SPTResultsTab(QWidget):
 
     def calculate_stresses_and_csr(self):
         if not self.soil_profile.max_acceleration:
-            self.results_label.setText("Please enter valid max acceleration.")
+            QMessageBox.warning(self, "Invalid Input", "Please enter valid max acceleration.")
             return
         if not self.soil_profile.msf:
-            self.results_label.setText("Please enter valid MSF or Earthquake Magnitude.")
+            QMessageBox.warning(self, "Invalid Input", "Please enter valid MSF or Earthquake Magnitude.")
             return
-        if self.ksigma_ratio.isChecked():
-            k_sigma_status = True
-        else:
-            k_sigma_status = False
+
+        k_sigma_status = self.ksigma_ratio.isChecked()
 
         nceer_calculation = CalculationFactory.get_calculation("NCEER")
         japanese_calculation = CalculationFactory.get_calculation("Japanese")
 
         nceer_parameters = nceer_calculation.calculate_fl(self.soil_profile, self.spt_data, k_sigma_status)
-
         japanese_parameters = japanese_calculation.calculate_fl(self.soil_profile, self.spt_data, k_sigma_status)
-        self.results_label.setText(
-            f"Total Stress: {nceer_parameters[0]}\nEffective Stress: {nceer_parameters[1]}\nCSR: {nceer_parameters[2]}\nN1 60: {nceer_parameters[3]}"
-            f"\nN1 60 cs : {nceer_parameters[4]} \nCRR 7.5: {nceer_parameters[5]} \nCRR : {nceer_parameters[6]}"
-            f"\nFl : {nceer_parameters[7]} \n ---------------------- "
-            f"\nTotal Stress: {japanese_parameters[0]}\nEffective Stress: {japanese_parameters[1]}\nCSR: {japanese_parameters[2]}\nN1 60: {japanese_parameters[3]}"
-            f"\nN1 60 cs : {japanese_parameters[4]} \nCRR 7.5: {japanese_parameters[5]} \nCRR : {japanese_parameters[6]}"
-            f"\nFl : {japanese_parameters[7]}")
+
+        self.results_display_tab.update_results(nceer_parameters, japanese_parameters)
+        self.tab_widget.setCurrentWidget(self.results_display_tab)
+        # self.results_label.setText(
+        #     f"Total Stress: {nceer_parameters[0]}\nEffective Stress: {nceer_parameters[1]}\nCSR: {nceer_parameters[2]}\nN1 60: {nceer_parameters[3]}"
+        #     f"\nN1 60 cs : {nceer_parameters[4]} \nCRR 7.5: {nceer_parameters[5]} \nCRR : {nceer_parameters[6]}"
+        #     f"\nFl : {nceer_parameters[7]} \n ---------------------- "
+        #     f"\nTotal Stress: {japanese_parameters[0]}\nEffective Stress: {japanese_parameters[1]}\nCSR: {japanese_parameters[2]}\nN1 60: {japanese_parameters[3]}"
+        #     f"\nN1 60 cs : {japanese_parameters[4]} \nCRR 7.5: {japanese_parameters[5]} \nCRR : {japanese_parameters[6]}"
+        #     f"\nFl : {japanese_parameters[7]}")
 
         self.display_results(nceer_parameters, japanese_parameters)
 
