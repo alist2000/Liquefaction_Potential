@@ -1,7 +1,15 @@
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QTableWidget, QTableWidgetItem, QHBoxLayout
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QTableWidget, QTableWidgetItem, QHBoxLayout, \
+    QPushButton, QFileDialog
 from PySide6.QtCharts import QChart, QChartView, QLineSeries, QScatterSeries, QValueAxis
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QPen
+import openpyxl
+from openpyxl.chart.marker import Marker, DataPoint
+from openpyxl import Workbook
+from openpyxl.chart import ScatterChart, Reference, Series
+from openpyxl.drawing.fill import ColorChoice
+from openpyxl.styles import PatternFill, Font, Border, Side, Alignment
+from PySide6.QtWidgets import QFileDialog
 
 
 class ResultsDisplayTab(QWidget):
@@ -20,18 +28,24 @@ class ResultsDisplayTab(QWidget):
         self.setup_japanese_tab()
 
     def setup_nceer_tab(self):
-        layout = QHBoxLayout(self.nceer_tab)
+        layout = QVBoxLayout(self.nceer_tab)
+        table_chart_layout = QHBoxLayout()
         self.nceer_table = QTableWidget()
         self.nceer_chart_view = QChartView()
-        layout.addWidget(self.nceer_table)
-        layout.addWidget(self.nceer_chart_view)
+        table_chart_layout.addWidget(self.nceer_table)
+        table_chart_layout.addWidget(self.nceer_chart_view)
+        layout.addLayout(table_chart_layout)
+        self.add_save_button(layout, self.nceer_table)
 
     def setup_japanese_tab(self):
-        layout = QHBoxLayout(self.japanese_tab)
+        layout = QVBoxLayout(self.japanese_tab)
+        table_chart_layout = QHBoxLayout()
         self.japanese_table = QTableWidget()
         self.japanese_chart_view = QChartView()
-        layout.addWidget(self.japanese_table)
-        layout.addWidget(self.japanese_chart_view)
+        table_chart_layout.addWidget(self.japanese_table)
+        table_chart_layout.addWidget(self.japanese_chart_view)
+        layout.addLayout(table_chart_layout)
+        self.add_save_button(layout, self.japanese_table)
 
     def update_results(self, nceer_params, japanese_params):
         self.update_nceer_results(nceer_params)
@@ -63,8 +77,8 @@ class ResultsDisplayTab(QWidget):
                 QTableWidgetItem(f"{Cn:.3f}"),
                 QTableWidgetItem(f"{Ce:.3f}"),
                 QTableWidgetItem(f"{n1_60:.2f}"),
-                QTableWidgetItem(f"{alpha:.2f}"),
-                QTableWidgetItem(f"{beta:.2f}"),
+                QTableWidgetItem(f"{alpha:.3f}"),
+                QTableWidgetItem(f"{beta:.3f}"),
                 QTableWidgetItem(f"{n1_60_cs:.2f}"),
                 QTableWidgetItem(f"{crr_7_5:.4f}"),
                 QTableWidgetItem(f"{msf:.3f}"),
@@ -91,9 +105,10 @@ class ResultsDisplayTab(QWidget):
         self.japanese_table.setRowCount(len(params[0]))
 
         for row, (
-        depth, total_stress, effective_stress, rd, csr, n1_60, a, b, n1_60_cs, crr_7_5, msf, k_alpha, k_sigma, rl,
-        fl) in enumerate(
-                zip(*params)):
+                depth, total_stress, effective_stress, rd, csr, n1_60, a, b, n1_60_cs, crr_7_5, msf, k_alpha, k_sigma,
+                rl,
+                fl) in enumerate(
+            zip(*params)):
             items = [
                 QTableWidgetItem(f"{depth:.2f}"),
                 QTableWidgetItem(f"{total_stress:.2f}"),
@@ -101,8 +116,8 @@ class ResultsDisplayTab(QWidget):
                 QTableWidgetItem(f"{rd:.3f}"),
                 QTableWidgetItem(f"{csr:.4f}"),
                 QTableWidgetItem(f"{n1_60:.2f}"),
-                QTableWidgetItem(f"{a:.2f}"),
-                QTableWidgetItem(f"{b:.2f}"),
+                QTableWidgetItem(f"{a:.3f}"),
+                QTableWidgetItem(f"{b:.3f}"),
                 QTableWidgetItem(f"{n1_60_cs:.2f}"),
                 QTableWidgetItem(f"{crr_7_5:.4f}"),
                 QTableWidgetItem(f"{msf:.3f}"),
@@ -180,3 +195,115 @@ class ResultsDisplayTab(QWidget):
         axis_y.setRange(-max_depth * 1.1, -min_depth * 0.9)
 
         chart_view.setChart(chart)
+
+    def add_save_button(self, layout, table):
+        save_button = QPushButton("Save as XLSX")
+        save_button.clicked.connect(lambda: self.save_to_xlsx(table))
+
+        layout.addWidget(save_button)
+
+    def save_to_xlsx(self, table):
+        file_path, _ = QFileDialog.getSaveFileName(self, "Save Excel File", "", "Excel Files (*.xlsx)")
+        if not file_path:
+            return
+
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.title = "Data"
+
+        # Define styles
+        header_font = Font(bold=True, color="FFFFFF")
+        header_fill = PatternFill(start_color="4F81BD", end_color="4F81BD", fill_type="solid")
+        thin_border = Border(left=Side(style='thin'), right=Side(style='thin'),
+                             top=Side(style='thin'), bottom=Side(style='thin'))
+        red_fill = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")
+        green_fill = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid")
+
+        # Write headers
+        for col in range(table.columnCount()):
+            cell = sheet.cell(row=1, column=col + 1, value=table.horizontalHeaderItem(col).text())
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = Alignment(horizontal="center")
+            cell.border = thin_border
+
+        # Write data and find Depth and Fl columns
+        depth_col = fl_col = None
+        max_depth = 0
+        max_fl = 0
+
+        # Separate rows into two groups based on Fl value
+        rows_red = []
+        rows_green = []
+
+        for row in range(table.rowCount()):
+            row_data = []
+            for col in range(table.columnCount()):
+                item = table.item(row, col)
+                if item is not None:
+                    cell = sheet.cell(row=row + 2, column=col + 1)
+                    try:
+                        value = float(item.text())
+                        cell.value = value
+
+                        if table.horizontalHeaderItem(col).text() == "Depth":
+                            depth_col = col + 1
+                            max_depth = max(max_depth, value)
+                        elif table.horizontalHeaderItem(col).text() == "Fl":
+                            fl_col = col + 1
+                            max_fl = max(max_fl, value)
+                            if value < 1:
+                                cell.fill = red_fill
+                                rows_red.append(row + 2)
+                            else:
+                                cell.fill = green_fill
+                                rows_green.append(row + 2)
+                    except ValueError:
+                        cell.value = item.text()
+
+        if depth_col is None or fl_col is None:
+            print("Error: Couldn't find Depth or Fl column")
+            return
+
+        # Create chart
+        chart = ScatterChart()
+        chart.title = "Depth vs Fl"
+        chart.x_axis.title = "Fl"
+        chart.y_axis.title = "Depth (m)"
+
+        # Function to create a series from the given rows
+        def create_series(rows, color, title):
+            xvalues = Reference(sheet, min_col=fl_col, min_row=min(rows), max_row=max(rows))
+            yvalues = Reference(sheet, min_col=depth_col, min_row=min(rows), max_row=max(rows))
+            series = Series(values=yvalues, xvalues=xvalues, title=title)
+            series.marker = Marker(symbol="circle", size=10)
+            series.marker.graphicalProperties.solidFill = ColorChoice(prstClr=color)
+            series.graphicalProperties.line.solidFill = "000000"  # Black line to connect points
+            return series
+
+        # Create red and green series
+        if rows_red:
+            red_series = create_series(rows_red, "red", "Fl < 1")
+            chart.series.append(red_series)
+
+        if rows_green:
+            green_series = create_series(rows_green, "green", "Fl >= 1")
+            chart.series.append(green_series)
+
+        # Customize chart
+        chart.x_axis.scaling.min = 0
+        chart.x_axis.scaling.max = max_fl * 1.1  # Slightly increase the max to give space
+        chart.y_axis.scaling.min = 0
+        chart.y_axis.scaling.max = max_depth * 1.1  # Add 10% to the max depth for better visibility
+
+        # Set chart size
+        chart.height = 15  # Height in cm
+        chart.width = 20  # Width in cm
+
+        # Add chart to a new sheet
+        chart_sheet = workbook.create_sheet(title="Depth vs Fl Chart")
+        chart_sheet.add_chart(chart, "A1")
+
+        # Save workbook
+        workbook.save(file_path)
+        print(f"Excel file saved successfully at {file_path}")
