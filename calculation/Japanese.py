@@ -27,7 +27,8 @@ class JapaneseCalculation(CalculationStrategy):
         CRR_main = []
         Fl = []
         depthList = []
-
+        (rd_list, alpha_list, beta_list,
+         msf_list, k_alpha_list, k_sigma_list) = [], [], [], [], [], []
         fine_content_index = 0
         fine_content_layer = fine_content[0]["fine_content"]
         for result in self.spt_data.results:
@@ -47,6 +48,8 @@ class JapaneseCalculation(CalculationStrategy):
                         fine_content_index += 1
 
             alpha, beta = self.calculate_alpha_beta(fine_content_layer)
+            alpha_list.append(alpha)
+            beta_list.append(beta)
 
             n_value = result.n_value
             # hammer_energy = result.hammer_energy / 60
@@ -64,6 +67,7 @@ class JapaneseCalculation(CalculationStrategy):
             total_stress.append(total_stress_depth)
             effective_stress.append(effective_stress_depth)
             rd = SPTData.calculate_rd_japanese(depth)
+            rd_list.append(rd)
 
             csr = max_acceleration * (total_stress_depth / effective_stress_depth) * rd
             csr_values.append(csr)
@@ -89,13 +93,16 @@ class JapaneseCalculation(CalculationStrategy):
                 f = linear_interp(relative_density)
                 k_sigma = float((effective_stress_depth / 1) ** (f - 1))
             msf = soil_profile.msf
+            msf_list.append(msf)
+            k_sigma_list.append(k_sigma)
+            k_alpha_list.append(k_alpha)
             CRR_final = msf * k_alpha * k_sigma * CRR
             fl = CRR_final / csr
             CRR_main.append(CRR_final)
             Fl.append(fl)
 
-        return (depthList, total_stress, effective_stress, csr_values, n_edited_values,
-                n_edited_values_cs, CRR_7_5, CRR_main, Fl)
+        return (depthList, total_stress, effective_stress, rd_list, csr_values, n_edited_values, alpha_list, beta_list,
+                n_edited_values_cs, CRR_7_5, msf_list, k_alpha_list, k_sigma_list, CRR_main, Fl)
 
     def calculate_alpha_beta(self, fine_content):
         if fine_content < 10:

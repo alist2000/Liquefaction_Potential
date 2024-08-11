@@ -14,7 +14,7 @@ class ResultsDisplayTab(QWidget):
         self.nceer_tab = QWidget()
         self.japanese_tab = QWidget()
         self.tab_widget.addTab(self.nceer_tab, "NCEER Results")
-        self.tab_widget.addTab(self.japanese_tab, "Japanese Results")
+        self.tab_widget.addTab(self.japanese_tab, "Japanese Method Results")
 
         self.setup_nceer_tab()
         self.setup_japanese_tab()
@@ -38,23 +38,39 @@ class ResultsDisplayTab(QWidget):
         self.update_japanese_results(japanese_params)
 
     def update_nceer_results(self, params):
-        self.nceer_table.setColumnCount(9)
+        self.nceer_table.setColumnCount(len(params))
         self.nceer_table.setHorizontalHeaderLabels([
-            "Depth", "Total Stress", "Effective Stress", "CSR", "N1 60", "N1 60 cs", "CRR 7.5", "CRR", "Fl"
+            "Depth", "Total Stress", "Effective Stress", "rd", "CSR", "Cb", "Cs", "Cr", "Cn", "Ce", "N1 60", "\u03B1",
+            "\u03B2",
+            "N1 60 cs", "CRR 7.5", "MSF", "K\u03B1", "k\u03C3", "CRR", "Fl"
         ])
         self.nceer_table.setRowCount(len(params[0]))
 
-        for row, (depth, total_stress, effective_stress, csr, n1_60, n1_60_cs, crr_7_5, crr, fl) in enumerate(
-                zip(*params)):
+        for row, (
+                depth, total_stress, effective_stress, rd, csr, Cb, Cs, Cr, Cn, Ce, n1_60, alpha, beta, n1_60_cs,
+                crr_7_5, msf, k_alpha, k_sigma, crr,
+                fl) in enumerate(
+            zip(*params)):
             items = [
                 QTableWidgetItem(f"{depth:.2f}"),
                 QTableWidgetItem(f"{total_stress:.2f}"),
                 QTableWidgetItem(f"{effective_stress:.2f}"),
-                QTableWidgetItem(f"{csr:.3f}"),
+                QTableWidgetItem(f"{rd:.3f}"),
+                QTableWidgetItem(f"{csr:.4f}"),
+                QTableWidgetItem(f"{Cb:.3f}"),
+                QTableWidgetItem(f"{Cs:.3f}"),
+                QTableWidgetItem(f"{Cr:.3f}"),
+                QTableWidgetItem(f"{Cn:.3f}"),
+                QTableWidgetItem(f"{Ce:.3f}"),
                 QTableWidgetItem(f"{n1_60:.2f}"),
+                QTableWidgetItem(f"{alpha:.2f}"),
+                QTableWidgetItem(f"{beta:.2f}"),
                 QTableWidgetItem(f"{n1_60_cs:.2f}"),
-                QTableWidgetItem(f"{crr_7_5:.3f}"),
-                QTableWidgetItem(f"{crr:.3f}"),
+                QTableWidgetItem(f"{crr_7_5:.4f}"),
+                QTableWidgetItem(f"{msf:.3f}"),
+                QTableWidgetItem(f"{k_alpha:.3f}"),
+                QTableWidgetItem(f"{k_sigma:.3f}"),
+                QTableWidgetItem(f"{crr:.4f}"),
                 QTableWidgetItem(f"{fl:.4f}")
             ]
 
@@ -64,27 +80,36 @@ class ResultsDisplayTab(QWidget):
             for col, item in enumerate(items):
                 self.nceer_table.setItem(row, col, item)
 
-        self.update_chart(self.nceer_chart_view, params[0], params[8], "Fl vs Depth")
+        self.update_chart(self.nceer_chart_view, params[0], params[len(params) - 1], "Fl vs Depth")
 
     def update_japanese_results(self, params):
-        self.japanese_table.setColumnCount(9)
+        self.japanese_table.setColumnCount(len(params))
         self.japanese_table.setHorizontalHeaderLabels([
-            "Depth", "Total Stress", "Effective Stress", "CSR", "N1", "Na", "Rl 7.5", "Rl", "Fl"
+            "Depth", "Total Stress", "Effective Stress", "rd", "CSR", "N1", "a", "b", "Na", "Rl 7.5", "MSF", "K\u03B1",
+            "k\u03C3", "Rl", "Fl"
         ])
         self.japanese_table.setRowCount(len(params[0]))
 
-        for row, (depth, total_stress, effective_stress, csr, n1_60, n1_60_cs, crr_7_5, rl, fl) in enumerate(
+        for row, (
+        depth, total_stress, effective_stress, rd, csr, n1_60, a, b, n1_60_cs, crr_7_5, msf, k_alpha, k_sigma, rl,
+        fl) in enumerate(
                 zip(*params)):
             items = [
                 QTableWidgetItem(f"{depth:.2f}"),
                 QTableWidgetItem(f"{total_stress:.2f}"),
                 QTableWidgetItem(f"{effective_stress:.2f}"),
-                QTableWidgetItem(f"{csr:.2f}"),
+                QTableWidgetItem(f"{rd:.3f}"),
+                QTableWidgetItem(f"{csr:.4f}"),
                 QTableWidgetItem(f"{n1_60:.2f}"),
+                QTableWidgetItem(f"{a:.2f}"),
+                QTableWidgetItem(f"{b:.2f}"),
                 QTableWidgetItem(f"{n1_60_cs:.2f}"),
-                QTableWidgetItem(f"{crr_7_5:.2f}"),
-                QTableWidgetItem(f"{rl:.2f}"),
-                QTableWidgetItem(f"{fl:.2f}")
+                QTableWidgetItem(f"{crr_7_5:.4f}"),
+                QTableWidgetItem(f"{msf:.3f}"),
+                QTableWidgetItem(f"{k_alpha:.3f}"),
+                QTableWidgetItem(f"{k_sigma:.3f}"),
+                QTableWidgetItem(f"{rl:.4f}"),
+                QTableWidgetItem(f"{fl:.4f}")
             ]
 
             for item in items:
@@ -93,7 +118,7 @@ class ResultsDisplayTab(QWidget):
             for col, item in enumerate(items):
                 self.japanese_table.setItem(row, col, item)
 
-        self.update_chart(self.japanese_chart_view, params[0], params[8], "Fl vs Depth")
+        self.update_chart(self.japanese_chart_view, params[0], params[len(params) - 1], "Fl vs Depth")
 
     def update_chart(self, chart_view, depths, fls, title):
         line_series = QLineSeries()
