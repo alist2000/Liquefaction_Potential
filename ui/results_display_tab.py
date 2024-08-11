@@ -46,15 +46,23 @@ class ResultsDisplayTab(QWidget):
 
         for row, (depth, total_stress, effective_stress, csr, n1_60, n1_60_cs, crr_7_5, crr, fl) in enumerate(
                 zip(*params)):
-            self.nceer_table.setItem(row, 0, QTableWidgetItem(f"{depth:.2f}"))
-            self.nceer_table.setItem(row, 1, QTableWidgetItem(f"{total_stress:.2f}"))
-            self.nceer_table.setItem(row, 2, QTableWidgetItem(f"{effective_stress:.2f}"))
-            self.nceer_table.setItem(row, 3, QTableWidgetItem(f"{csr:.3f}"))
-            self.nceer_table.setItem(row, 4, QTableWidgetItem(f"{n1_60:.2f}"))
-            self.nceer_table.setItem(row, 5, QTableWidgetItem(f"{n1_60_cs:.2f}"))
-            self.nceer_table.setItem(row, 6, QTableWidgetItem(f"{crr_7_5:.3f}"))
-            self.nceer_table.setItem(row, 7, QTableWidgetItem(f"{crr:.3f}"))
-            self.nceer_table.setItem(row, 8, QTableWidgetItem(f"{fl:.4f}"))
+            items = [
+                QTableWidgetItem(f"{depth:.2f}"),
+                QTableWidgetItem(f"{total_stress:.2f}"),
+                QTableWidgetItem(f"{effective_stress:.2f}"),
+                QTableWidgetItem(f"{csr:.3f}"),
+                QTableWidgetItem(f"{n1_60:.2f}"),
+                QTableWidgetItem(f"{n1_60_cs:.2f}"),
+                QTableWidgetItem(f"{crr_7_5:.3f}"),
+                QTableWidgetItem(f"{crr:.3f}"),
+                QTableWidgetItem(f"{fl:.4f}")
+            ]
+
+            for item in items:
+                item.setFlags(item.flags() & ~Qt.ItemIsEditable)  # Make the item uneditable
+
+            for col, item in enumerate(items):
+                self.nceer_table.setItem(row, col, item)
 
         self.update_chart(self.nceer_chart_view, params[0], params[8], "Fl vs Depth")
 
@@ -67,15 +75,23 @@ class ResultsDisplayTab(QWidget):
 
         for row, (depth, total_stress, effective_stress, csr, n1_60, n1_60_cs, crr_7_5, rl, fl) in enumerate(
                 zip(*params)):
-            self.japanese_table.setItem(row, 0, QTableWidgetItem(f"{depth:.2f}"))
-            self.japanese_table.setItem(row, 1, QTableWidgetItem(f"{total_stress:.2f}"))
-            self.japanese_table.setItem(row, 2, QTableWidgetItem(f"{effective_stress:.2f}"))
-            self.japanese_table.setItem(row, 3, QTableWidgetItem(f"{csr:.2f}"))
-            self.japanese_table.setItem(row, 4, QTableWidgetItem(f"{n1_60:.2f}"))
-            self.japanese_table.setItem(row, 5, QTableWidgetItem(f"{n1_60_cs:.2f}"))
-            self.japanese_table.setItem(row, 6, QTableWidgetItem(f"{crr_7_5:.2f}"))
-            self.japanese_table.setItem(row, 7, QTableWidgetItem(f"{rl:.2f}"))
-            self.japanese_table.setItem(row, 8, QTableWidgetItem(f"{fl:.2f}"))
+            items = [
+                QTableWidgetItem(f"{depth:.2f}"),
+                QTableWidgetItem(f"{total_stress:.2f}"),
+                QTableWidgetItem(f"{effective_stress:.2f}"),
+                QTableWidgetItem(f"{csr:.2f}"),
+                QTableWidgetItem(f"{n1_60:.2f}"),
+                QTableWidgetItem(f"{n1_60_cs:.2f}"),
+                QTableWidgetItem(f"{crr_7_5:.2f}"),
+                QTableWidgetItem(f"{rl:.2f}"),
+                QTableWidgetItem(f"{fl:.2f}")
+            ]
+
+            for item in items:
+                item.setFlags(item.flags() & ~Qt.ItemIsEditable)  # Make the item uneditable
+
+            for col, item in enumerate(items):
+                self.japanese_table.setItem(row, col, item)
 
         self.update_chart(self.japanese_chart_view, params[0], params[8], "Fl vs Depth")
 
