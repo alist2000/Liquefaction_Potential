@@ -3,6 +3,7 @@ from Liquefaction_Potential.ui.soil_layers_tab import SoilLayersTab
 from Liquefaction_Potential.ui.spt_results_tab import SPTResultsTab, SPTResult
 from Liquefaction_Potential.models.soil_profile import SoilProfile, SoilLayer
 from Liquefaction_Potential.models.spt_data import SPTData
+from Liquefaction_Potential.ui.results_display_tab import ResultsDisplayTab
 
 from PySide6.QtWidgets import QMainWindow, QTabWidget, QToolBar, QFileDialog
 from PySide6.QtGui import QAction
@@ -37,10 +38,14 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.tab_widget)
 
         self.soil_layers_tab = SoilLayersTab(soil_profile)
-        self.spt_results_tab = SPTResultsTab(soil_profile, spt_data)
+        # Results Display Tab
+        self.results_display_tab = ResultsDisplayTab()
+        self.spt_results_tab = SPTResultsTab(soil_profile, spt_data, self.results_display_tab, self.tab_widget)
+        self.results_display_tab.setEnabled(False)
 
         self.tab_widget.addTab(self.soil_layers_tab, "Soil Layers")
-        self.tab_widget.addTab(self.spt_results_tab, "SPT Results")
+        self.tab_widget.addTab(self.spt_results_tab, "SPT Inputs")
+        self.tab_widget.addTab(self.results_display_tab, "Results")
 
     def save_data(self):
         file_name, _ = QFileDialog.getSaveFileName(self, "Save Data", "", "JSON Files (*.json)")
@@ -102,5 +107,6 @@ class MainWindow(QMainWindow):
 
             self.soil_layers_tab.update_msf_ratio()  # Make sure UI is updated based on selected option
             self.spt_results_tab.update_spt_table()
+            self.results_display_tab.setEnabled(False)
 
             # You may need to update other UI elements as well
