@@ -26,11 +26,13 @@ class NCEERCalculation(CalculationStrategy):
         CRR_7_5 = []
         CRR_main = []
         Fl = []
+        depthList = []
 
         fine_content_index = 0
         fine_content_layer = fine_content[0]["fine_content"]
         for result in self.spt_data.results:
             depth = result.depth
+            depthList.append(depth)
             fine_content_not_find = True
             while fine_content_not_find:
                 if depth <= fine_content[fine_content_index]["depth"]:
@@ -87,7 +89,8 @@ class NCEERCalculation(CalculationStrategy):
             CRR_main.append(CRR_final)
             Fl.append(fl)
 
-        return total_stress, effective_stress, csr_values, n_edited_values, n_edited_values_cs, CRR_7_5, CRR_main, Fl
+        return (depthList, total_stress, effective_stress, csr_values, n_edited_values,
+                n_edited_values_cs, CRR_7_5, CRR_main, Fl)
 
     def calculate_alpha_beta(self, fine_content):
         if fine_content <= 5:
