@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QTableWidget, QT
     QPushButton, QFileDialog
 from PySide6.QtCharts import QChart, QChartView, QLineSeries, QScatterSeries, QValueAxis
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor, QPen
+from PySide6.QtGui import QColor, QPen, QCursor
 import openpyxl
 from openpyxl.chart.marker import Marker, DataPoint
 from openpyxl import Workbook
@@ -10,7 +10,8 @@ from openpyxl.chart import ScatterChart, Reference, Series
 from openpyxl.drawing.fill import ColorChoice
 from openpyxl.styles import PatternFill, Font, Border, Side, Alignment
 from PySide6.QtWidgets import QFileDialog
-
+from PySide6.QtWidgets import QToolTip
+from PySide6.QtCore import QPointF
 
 class ResultsDisplayTab(QWidget):
     def __init__(self):
@@ -137,8 +138,8 @@ class ResultsDisplayTab(QWidget):
 
     def update_chart(self, chart_view, depths, fls, title):
         line_series = QLineSeries()
-        scatter_series = QScatterSeries()
-        scatter_series2 = QScatterSeries()
+        scatter_series = CustomScatterSeries()
+        scatter_series2 = CustomScatterSeries()
 
         for depth, fl in zip(depths, fls):
             if fl < 1:
@@ -307,3 +308,17 @@ class ResultsDisplayTab(QWidget):
         # Save workbook
         workbook.save(file_path)
         print(f"Excel file saved successfully at {file_path}")
+
+
+
+
+class CustomScatterSeries(QScatterSeries):
+    def __init__(self):
+        super().__init__()
+        self.hovered.connect(self.onHovered)
+
+    def onHovered(self, point, state):
+        if state:
+            QToolTip.showText(QCursor.pos(), f"Fl: {point.x():.4f}, Depth: {-point.y():.2f}")
+        else:
+            QToolTip.hideText()
