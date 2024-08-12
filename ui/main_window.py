@@ -4,10 +4,11 @@ from Liquefaction_Potential.ui.spt_results_tab import SPTResultsTab, SPTResult
 from Liquefaction_Potential.models.soil_profile import SoilProfile, SoilLayer
 from Liquefaction_Potential.models.spt_data import SPTData
 from Liquefaction_Potential.ui.results_display_tab import ResultsDisplayTab
-
-from PySide6.QtWidgets import QMainWindow, QTabWidget, QToolBar, QFileDialog
-from PySide6.QtGui import QAction
 import json
+from PySide6.QtWidgets import (QMainWindow, QTabWidget, QToolBar, QFileDialog,
+                               QStatusBar, QLabel, QHBoxLayout, QWidget)
+from PySide6.QtGui import QAction, QDesktopServices
+from PySide6.QtCore import Qt, QUrl
 
 
 class MainWindow(QMainWindow):
@@ -46,6 +47,7 @@ class MainWindow(QMainWindow):
         self.tab_widget.addTab(self.soil_layers_tab, "Soil Layers")
         self.tab_widget.addTab(self.spt_results_tab, "SPT Inputs")
         self.tab_widget.addTab(self.results_display_tab, "Results")
+        self.create_status_bar()
 
     def save_data(self):
         file_name, _ = QFileDialog.getSaveFileName(self, "Save Data", "", "JSON Files (*.json)")
@@ -110,3 +112,32 @@ class MainWindow(QMainWindow):
             self.results_display_tab.setEnabled(False)
 
             # You may need to update other UI elements as well
+
+    def create_status_bar(self):
+        status_bar = QStatusBar()
+        self.setStatusBar(status_bar)
+
+        # Create a widget to hold the status bar content
+        status_widget = QWidget()
+        status_layout = QHBoxLayout(status_widget)
+        status_layout.setContentsMargins(10, 0, 10, 0)
+
+        # Add your signature
+        signature_label = QLabel("Created by Ali Safari")
+        status_layout.addWidget(signature_label)
+
+        # Add spacer
+        status_layout.addStretch()
+
+        # Add contact link
+        contact_label = QLabel('<a href="mailto:ali.safari.t@ut.ac.ir">Contact</a>')
+        contact_label.setOpenExternalLinks(True)
+        status_layout.addWidget(contact_label)
+
+        # Add GitHub link
+        github_label = QLabel('<a href="https://github.com/alist2000/Liquefaction_Potential">GitHub</a>')
+        github_label.setOpenExternalLinks(True)
+        status_layout.addWidget(github_label)
+
+        # Set the custom widget as the status bar
+        status_bar.addPermanentWidget(status_widget, 1)
