@@ -2,6 +2,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QFormLayout, QLineEdit,
                                QPushButton, QTableWidget, QTableWidgetItem, QHeaderView,
                                QHBoxLayout, QDoubleSpinBox, QRadioButton, QLabel)
 from Liquefaction_Potential.models.soil_profile import SoilProfile, SoilLayer
+from Liquefaction_Potential.ui.soil_preview_dialog import SoilPreviewDialog
 
 
 class SoilLayersTab(QWidget):
@@ -9,6 +10,8 @@ class SoilLayersTab(QWidget):
         super().__init__()
         self.soil_profile = soil_profile
         self.setup_ui()
+        self.preview_button = None
+        self.preview_dialog = None
 
     def setup_ui(self):
         layout = QVBoxLayout()
@@ -83,6 +86,16 @@ class SoilLayersTab(QWidget):
         layout.addWidget(self.soil_table)
 
         self.setLayout(layout)
+        # In the setup_ui method of SoilLayersTab class
+        self.preview_button = QPushButton("Show Soil Preview")
+        self.preview_button.clicked.connect(self.show_soil_preview)
+        layout.addWidget(self.preview_button)
+
+    def show_soil_preview(self):
+        if not self.preview_dialog:
+            self.preview_dialog = SoilPreviewDialog(self.soil_profile)
+        self.preview_dialog.update_preview()
+        self.preview_dialog.show()
 
     def add_soil_layer(self):
         try:
@@ -107,6 +120,8 @@ class SoilLayersTab(QWidget):
         except ValueError:
             # Handle input errors
             pass
+        if self.preview_dialog:
+            self.preview_dialog.update_preview()
 
     def update_soil_table(self):
         self.soil_table.setColumnCount(6)  # Remove the Actions column
@@ -120,12 +135,13 @@ class SoilLayersTab(QWidget):
             self.soil_table.setItem(i, 3, QTableWidgetItem(str(layer.fine_content)))
             self.soil_table.setItem(i, 4, QTableWidgetItem(str(layer.ll) if layer.ll is not None else ""))
             self.soil_table.setItem(i, 5, QTableWidgetItem(str(layer.pi) if layer.pi is not None else ""))
+        if self.preview_dialog:
+            self.preview_dialog.update_preview()
 
     def update_soil_layer(self, item):
         row = item.row()
         column = item.column()
         new_value = item.text()
-
         try:
             if column == 0:
                 self.soil_profile.layers[row].name = new_value
@@ -142,6 +158,8 @@ class SoilLayersTab(QWidget):
         except ValueError:
             # If the input is invalid, revert to the original value
             self.update_soil_table()
+        if self.preview_dialog:
+            self.preview_dialog.update_preview()
 
     def copy_selected_layer(self):
         selected_rows = self.soil_table.selectedItems()
@@ -149,6 +167,8 @@ class SoilLayersTab(QWidget):
             row = selected_rows[0].row()
             self.soil_profile.copy_layer(row)
             self.update_soil_table()
+        if self.preview_dialog:
+            self.preview_dialog.update_preview()
 
     def delete_selected_layer(self):
         selected_rows = self.soil_table.selectedItems()
@@ -156,11 +176,15 @@ class SoilLayersTab(QWidget):
             row = selected_rows[0].row()
             self.soil_profile.delete_layer(row)
             self.update_soil_table()
+        if self.preview_dialog:
+            self.preview_dialog.update_preview()
 
     def ground_water_or_acceleration(self):
         ground_water = self.groundwater_level_input.value()
         max_acceleration = self.max_acceleration_input.value()
         self.soil_profile.set_parameters(ground_water, max_acceleration)
+        if self.preview_dialog:
+            self.preview_dialog.update_preview()
 
     def update_msf_ratio(self):
         if self.MSF_ratio.isChecked():

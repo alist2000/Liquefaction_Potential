@@ -20,7 +20,7 @@ class SoilProfile(QObject):
     def __init__(self):
         super().__init__()
         self.layers: List[SoilLayer] = []
-        self.groundwater_level: float = None
+        self.groundwater_level: float = 0  # Set to 0 by default
         self.max_acceleration: float = None
         self.msf: float = None
 
