@@ -1,8 +1,8 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QTabWidget, QTableWidget, QTableWidgetItem, QHBoxLayout, \
     QPushButton, QFileDialog
 from PySide6.QtCharts import QChart, QChartView, QLineSeries, QScatterSeries, QValueAxis
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor, QPen, QCursor
+from PySide6.QtCore import Qt, QPointF
+from PySide6.QtGui import QColor, QPen, QCursor, QFont, QPainter
 import openpyxl
 from openpyxl.chart.marker import Marker, DataPoint
 from openpyxl import Workbook
@@ -12,6 +12,7 @@ from openpyxl.styles import PatternFill, Font, Border, Side, Alignment
 from PySide6.QtWidgets import QFileDialog
 from PySide6.QtWidgets import QToolTip
 from PySide6.QtCore import QPointF
+
 
 class ResultsDisplayTab(QWidget):
     def __init__(self):
@@ -150,6 +151,15 @@ class ResultsDisplayTab(QWidget):
             line_series.append(fl, -depth)  # Negative depth to show increasing depth downwards
 
         chart = QChart()
+        chart.setTitle(title)
+        chart.setTitleFont(QFont("Arial", 12, QFont.Bold))
+        chart.setAnimationOptions(QChart.SeriesAnimations)
+
+        # Customize chart background
+        chart.setBackgroundBrush(QColor(240, 240, 240))
+        chart.setPlotAreaBackgroundBrush(QColor(255, 255, 255))
+        chart.setPlotAreaBackgroundVisible(True)
+
         chart.addSeries(line_series)
         chart.addSeries(scatter_series)
         chart.addSeries(scatter_series2)
@@ -175,14 +185,24 @@ class ResultsDisplayTab(QWidget):
 
         axis_x = QValueAxis()
         axis_x.setTitleText("Fl")
+        axis_x.setTitleFont(QFont("Arial", 10))
+        axis_x.setLabelsFont(QFont("Arial", 9))
+        axis_x.setGridLineVisible(True)
+        axis_x.setGridLineColor(QColor(200, 200, 200))
         chart.addAxis(axis_x, Qt.AlignBottom)
+
+        axis_y = QValueAxis()
+        axis_y.setTitleText("Depth (m)")
+        axis_y.setTitleFont(QFont("Arial", 10))
+        axis_y.setLabelsFont(QFont("Arial", 9))
+        axis_y.setGridLineVisible(True)
+        axis_y.setGridLineColor(QColor(200, 200, 200))
+        chart.addAxis(axis_y, Qt.AlignLeft)
+
         line_series.attachAxis(axis_x)
         scatter_series.attachAxis(axis_x)
         scatter_series2.attachAxis(axis_x)
 
-        axis_y = QValueAxis()
-        axis_y.setTitleText("Depth (m)")
-        chart.addAxis(axis_y, Qt.AlignLeft)
         line_series.attachAxis(axis_y)
         scatter_series.attachAxis(axis_y)
         scatter_series2.attachAxis(axis_y)
@@ -195,6 +215,11 @@ class ResultsDisplayTab(QWidget):
         axis_x.setRange(min_fl * 0.9, max_fl * 1.1)
         axis_y.setRange(-max_depth * 1.1, -min_depth * 0.9)
 
+        # Add legend
+        chart.legend().setVisible(True)
+        chart.legend().setAlignment(Qt.AlignBottom)
+        chart.legend().setFont(QFont("Arial", 9))
+        chart_view.setRenderHint(QPainter.Antialiasing)
         chart_view.setChart(chart)
 
     def add_save_button(self, layout, table):
@@ -308,8 +333,6 @@ class ResultsDisplayTab(QWidget):
         # Save workbook
         workbook.save(file_path)
         print(f"Excel file saved successfully at {file_path}")
-
-
 
 
 class CustomScatterSeries(QScatterSeries):
