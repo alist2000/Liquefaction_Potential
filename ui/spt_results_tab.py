@@ -5,6 +5,7 @@ from Liquefaction_Potential.models.soil_profile import SoilProfile
 from Liquefaction_Potential.models.spt_data import SPTData, SPTResult
 from Liquefaction_Potential.calculation.calculation_factory import CalculationFactory
 from Liquefaction_Potential.ui.results_display_tab import ResultsDisplayTab
+from Liquefaction_Potential.ui.style import style, table_style
 
 
 class SPTResultsTab(QWidget):
@@ -98,6 +99,20 @@ class SPTResultsTab(QWidget):
         self.spt_table.itemChanged.connect(self.update_spt_result)
         self.ksigma_ratio.toggled.connect(self.k_sigma_toggled)
         self.Dr_ratio.toggled.connect(self.k_sigma_toggled)
+
+        # Style the buttons
+
+        # self.add_spt_result_button.setStyleSheet(style)
+        # self.copy_spt_result_button.setStyleSheet(style)
+        # self.delete_spt_result_button.setStyleSheet(style)
+        # self.calculate_button.setStyleSheet(style)
+
+        self.spt_table.setStyleSheet(table_style)
+        self.spt_table.setAlternatingRowColors(True)
+
+        # Add tooltips
+        self.spt_depth_input.setToolTip("Enter the depth of the SPT test")
+        self.spt_n_value_input.setToolTip("Enter the N-value from the SPT test")
 
     def add_spt_result(self):
         try:

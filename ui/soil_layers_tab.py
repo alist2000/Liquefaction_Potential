@@ -3,6 +3,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QFormLayout, QLineEdit,
                                QHBoxLayout, QDoubleSpinBox, QRadioButton, QLabel)
 from Liquefaction_Potential.models.soil_profile import SoilProfile, SoilLayer
 from Liquefaction_Potential.ui.soil_preview_dialog import SoilPreviewDialog
+from Liquefaction_Potential.ui.style import style, table_style
 
 
 class SoilLayersTab(QWidget):
@@ -34,6 +35,11 @@ class SoilLayersTab(QWidget):
         self.copy_layer_button.clicked.connect(self.copy_selected_layer)
         self.delete_layer_button = QPushButton("Delete Selected Layer")
         self.delete_layer_button.clicked.connect(self.delete_selected_layer)
+
+        # self.add_layer_button.setStyleSheet(style)
+        # self.copy_layer_button.setStyleSheet(style)
+        # self.delete_layer_button.setStyleSheet(style)
+
 
         button_layout.addWidget(self.add_layer_button)
         button_layout.addWidget(self.copy_layer_button)
@@ -72,6 +78,8 @@ class SoilLayersTab(QWidget):
         layout.addLayout(form_layout)
 
         self.soil_table = QTableWidget()
+        self.soil_table.setStyleSheet(table_style)
+        self.soil_table.setAlternatingRowColors(True)
         self.soil_table.setColumnCount(4)
         self.soil_table.setHorizontalHeaderLabels(["Layer Name", "Gamma (kN/m³)", "Thickness (m)",
                                                    "Fine Content (%)"])
@@ -84,6 +92,8 @@ class SoilLayersTab(QWidget):
         self.setLayout(layout)
         # In the setup_ui method of SoilLayersTab class
         self.preview_button = QPushButton("Show Soil Preview")
+        # self.preview_button.setStyleSheet(style)
+
         self.preview_button.clicked.connect(self.show_soil_preview)
         layout.addWidget(self.preview_button)
 

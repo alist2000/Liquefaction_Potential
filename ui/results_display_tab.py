@@ -12,6 +12,7 @@ from openpyxl.styles import PatternFill, Font, Border, Side, Alignment
 from PySide6.QtWidgets import QFileDialog
 from PySide6.QtWidgets import QToolTip
 from PySide6.QtCore import QPointF
+from Liquefaction_Potential.ui.style import style, table_style
 
 
 class ResultsDisplayTab(QWidget):
@@ -33,6 +34,8 @@ class ResultsDisplayTab(QWidget):
         layout = QVBoxLayout(self.nceer_tab)
         table_chart_layout = QHBoxLayout()
         self.nceer_table = QTableWidget()
+        self.nceer_table.setStyleSheet(table_style)
+        self.nceer_table.setAlternatingRowColors(True)
         self.nceer_chart_view = QChartView()
         table_chart_layout.addWidget(self.nceer_table)
         table_chart_layout.addWidget(self.nceer_chart_view)
@@ -43,6 +46,8 @@ class ResultsDisplayTab(QWidget):
         layout = QVBoxLayout(self.japanese_tab)
         table_chart_layout = QHBoxLayout()
         self.japanese_table = QTableWidget()
+        self.japanese_table.setStyleSheet(table_style)
+        self.japanese_table.setAlternatingRowColors(True)
         self.japanese_chart_view = QChartView()
         table_chart_layout.addWidget(self.japanese_table)
         table_chart_layout.addWidget(self.japanese_chart_view)
@@ -225,6 +230,7 @@ class ResultsDisplayTab(QWidget):
     def add_save_button(self, layout, table):
         save_button = QPushButton("Save as XLSX")
         save_button.clicked.connect(lambda: self.save_to_xlsx(table))
+        # save_button.setStyleSheet(style)
 
         layout.addWidget(save_button)
 
