@@ -21,15 +21,11 @@ class SoilLayersTab(QWidget):
         self.gamma_input = QLineEdit()
         self.thickness_input = QLineEdit()
         self.fine_content_input = QLineEdit()
-        self.ll_input = QLineEdit()
-        self.pi_input = QLineEdit()
 
         form_layout.addRow("Layer Name:", self.layer_name_input)
         form_layout.addRow("Gamma (kN/m³):", self.gamma_input)
         form_layout.addRow("Thickness (m):", self.thickness_input)
         form_layout.addRow("Fine Content (%):", self.fine_content_input)
-        form_layout.addRow("LL (optional):", self.ll_input)
-        form_layout.addRow("PI (optional):", self.pi_input)
 
         button_layout = QHBoxLayout()
         self.add_layer_button = QPushButton("Add Soil Layer")
@@ -76,9 +72,9 @@ class SoilLayersTab(QWidget):
         layout.addLayout(form_layout)
 
         self.soil_table = QTableWidget()
-        self.soil_table.setColumnCount(6)
+        self.soil_table.setColumnCount(4)
         self.soil_table.setHorizontalHeaderLabels(["Layer Name", "Gamma (kN/m³)", "Thickness (m)",
-                                                   "Fine Content (%)", "LL", "PI"])
+                                                   "Fine Content (%)"])
         self.soil_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.soil_table.itemChanged.connect(self.update_soil_layer)
         self.groundwater_level_input.valueChanged.connect(self.ground_water_or_acceleration)
@@ -103,10 +99,8 @@ class SoilLayersTab(QWidget):
             gamma = float(self.gamma_input.text())
             thickness = float(self.thickness_input.text())
             fine_content = float(self.fine_content_input.text())
-            ll = float(self.ll_input.text()) if self.ll_input.text() else None
-            pi = float(self.pi_input.text()) if self.pi_input.text() else None
 
-            layer = SoilLayer(layer_name, gamma, thickness, fine_content, ll, pi)
+            layer = SoilLayer(layer_name, gamma, thickness, fine_content)
             self.soil_profile.add_layer(layer)
 
             self.update_soil_table()
@@ -115,8 +109,6 @@ class SoilLayersTab(QWidget):
             self.gamma_input.clear()
             self.thickness_input.clear()
             self.fine_content_input.clear()
-            self.ll_input.clear()
-            self.pi_input.clear()
         except ValueError:
             # Handle input errors
             pass
@@ -126,15 +118,13 @@ class SoilLayersTab(QWidget):
     def update_soil_table(self):
         self.soil_table.setColumnCount(6)  # Remove the Actions column
         self.soil_table.setHorizontalHeaderLabels(["Layer Name", "Gamma (kN/m³)", "Thickness (m)",
-                                                   "Fine Content (%)", "LL", "PI"])
+                                                   "Fine Content (%)"])
         self.soil_table.setRowCount(len(self.soil_profile.layers))
         for i, layer in enumerate(self.soil_profile.layers):
             self.soil_table.setItem(i, 0, QTableWidgetItem(layer.name))
             self.soil_table.setItem(i, 1, QTableWidgetItem(str(layer.gamma)))
             self.soil_table.setItem(i, 2, QTableWidgetItem(str(layer.thickness)))
             self.soil_table.setItem(i, 3, QTableWidgetItem(str(layer.fine_content)))
-            self.soil_table.setItem(i, 4, QTableWidgetItem(str(layer.ll) if layer.ll is not None else ""))
-            self.soil_table.setItem(i, 5, QTableWidgetItem(str(layer.pi) if layer.pi is not None else ""))
         if self.preview_dialog:
             self.preview_dialog.update_preview()
 
@@ -151,10 +141,6 @@ class SoilLayersTab(QWidget):
                 self.soil_profile.layers[row].thickness = float(new_value)
             elif column == 3:
                 self.soil_profile.layers[row].fine_content = float(new_value)
-            elif column == 4:
-                self.soil_profile.layers[row].ll = float(new_value) if new_value else None
-            elif column == 5:
-                self.soil_profile.layers[row].pi = float(new_value) if new_value else None
         except ValueError:
             # If the input is invalid, revert to the original value
             self.update_soil_table()
