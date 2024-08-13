@@ -126,7 +126,7 @@ class SoilLayersTab(QWidget):
             self.preview_dialog.update_preview()
 
     def update_soil_table(self):
-        self.soil_table.setColumnCount(6)  # Remove the Actions column
+        self.soil_table.setColumnCount(4)  # Remove the Actions column
         self.soil_table.setHorizontalHeaderLabels(["Layer Name", "Gamma (kN/m³)", "Thickness (m)",
                                                    "Fine Content (%)"])
         self.soil_table.setRowCount(len(self.soil_profile.layers))
