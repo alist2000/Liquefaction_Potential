@@ -54,7 +54,7 @@ class SoilPreviewDialog(QDialog):
         gw_y = gw_level * scale_factor
         gw_line = self.scene.addLine(0, gw_y, 350, gw_y, QPen(Qt.blue, 2))
         gw_text = self.scene.addText("Groundwater Level")
-        gw_text.setPos(10, gw_y - 20)
+        gw_text.setPos(200, gw_y - 20)
         gw_text.setDefaultTextColor(Qt.blue)
 
         self.view.fitInView(self.scene.sceneRect(), Qt.KeepAspectRatio)
