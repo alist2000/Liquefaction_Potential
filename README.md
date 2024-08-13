@@ -144,7 +144,14 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+This project is licensed under a Modified MIT License - see the [LICENSE.md](LICENSE.md) file for details. Key points:
+
+1. The software is free for academic, scientific, and personal use.
+2. Commercial use is prohibited without explicit permission from Ali Safari.
+3. Any academic or scientific publication using this software must cite:
+   Ali Safari, 2024, Liquefaction Potential Analysis Application
+
+For full terms and conditions, please refer to the LICENSE.md file in this repository.
 
 ## Acknowledgments
 
