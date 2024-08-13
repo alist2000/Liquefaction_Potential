@@ -12,7 +12,9 @@ furnished to do so, subject to the following conditions:
 1. The above copyright notice and this permission notice shall be included in all
    copies or substantial portions of the Software.
 
-2. For any academic or scientific publication that uses this Software or a 
+2. Non-Commercial Use Only: The Software and its associated documentation files may be used solely for academic, scientific, or personal purposes. Any commercial    use of the Software, including but not limited to using, copying, modifying, merging, publishing, distributing, sublicensing, or selling copies of the Software    for commercial gain, is strictly prohibited without prior written permission from the copyright holder. Those interested in commercial use must contact Ali        Safari to obtain a separate commercial license.
+
+3. For any academic or scientific publication that uses this Software or a 
    modified version of it, the author(s) must cite:
    Ali Safari, 2024, Liquefaction Potential Analysis Application
 
