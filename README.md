@@ -157,6 +157,7 @@ For full terms and conditions, please refer to the LICENSE.md file in this repos
 
 - Japanese Geotechnical Society for the Japanese method
 - National Center for Earthquake Engineering Research (NCEER) for the NCEER method
+- Dr. Abbas Ghalandarzadeh for his guidance and support
 
 ## Contact
 
