@@ -86,7 +86,7 @@ class SPTResultsTab(QWidget):
         spt_input_layout.addWidget(self.spt_table)
 
         # Calculate button
-        self.calculate_button = QPushButton("Calculate Stresses and CSR")
+        self.calculate_button = QPushButton("Calculate")
         spt_input_layout.addWidget(self.calculate_button)
 
         self.setLayout(spt_input_layout)
